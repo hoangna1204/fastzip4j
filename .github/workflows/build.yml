@@ -1,0 +1,41 @@
+name: Build Go Library
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.1'
+
+      - name: Build Go Lib
+        run: ./fastzip4jlib/build.sh
+
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+
+      - name: Setup Maven
+        run: sudo apt-get install -y maven
+
+      - name: Build artifact
+        run: mvn clean install
+        working-directory: ./fastzip4j
+      
+      - name: Deploy
+        run: mvn deploy
+        working-directory: ./fastzip4j
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
