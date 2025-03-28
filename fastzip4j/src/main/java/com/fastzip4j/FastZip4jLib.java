@@ -1,4 +1,4 @@
-package io.fastzip4j;
+package com.fastzip4j;
 
 import com.sun.jna.Library;
 
