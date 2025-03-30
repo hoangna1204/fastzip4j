@@ -17,8 +17,8 @@ Higher levels typically run slower but compress more.
 */
 var compressionLevel = 1;
 FastZip4j.archiveFile(
-  new File("path/to/your/file.txt"),
-  new File("path/to/your/zipfile.zip"),
+  Path.of("path/to/your/file.txt"),
+  Path.of("path/to/your/zipfile.zip"),
   compressionLevel);
 ```
 
@@ -31,14 +31,14 @@ Higher levels typically run slower but compress more.
 */
 var compressionLevel = 1;
 FastZip4j.archiveDir(
-  new File("path/to/your/folder/"),
-  new File("path/to/your/zipfile.zip"),
+  Path.of("path/to/your/folder/"),
+  Path.of("path/to/your/zipfile.zip"),
   compressionLevel);
 ```
 
 ## Extractor
 ```java
 FastZip4j.extract(
-  new File("path/to/your/zipfile.zip"),
-  new File("path/to/your/destination/folder/"));
+  Path.of("path/to/your/zipfile.zip"),
+  Path.of("path/to/your/destination/folder/"));
 ```
