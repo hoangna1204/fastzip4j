@@ -2,7 +2,7 @@ package com.fastzip4j;
 
 import com.sun.jna.Native;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * The {@code FastZip4j} class provides utility methods for archiving files and directories
@@ -23,19 +23,8 @@ public class FastZip4j {
      * @param zipFile          the destination ZIP file
      * @param compressionLevel the compression level. CompressionLevel must be between 1 (BestSpeed) and 9 (BestCompression). Higher levels typically run slower but compress more.
      */
-    public static void archiveFile(File sourceFile, File zipFile, int compressionLevel) {
-        archiveFile(sourceFile.getAbsolutePath(), zipFile.getAbsolutePath(), compressionLevel);
-    }
-
-    /**
-     * Archives a single file into a ZIP file with the specified compression level.
-     *
-     * @param sourceFile       the absolute path of the file to be archived
-     * @param zipFile          the absolute path of the destination ZIP file
-     * @param compressionLevel the compression level. CompressionLevel must be between 1 (BestSpeed) and 9 (BestCompression). Higher levels typically run slower but compress more.
-     */
-    public static void archiveFile(String sourceFile, String zipFile, int compressionLevel) {
-        fastzip4jLib.ArchiveFile(sourceFile, zipFile, compressionLevel);
+    public static void archiveFile(Path sourceFile, Path zipFile, int compressionLevel) {
+        archiveFile(sourceFile.toAbsolutePath().normalize().toString(), zipFile.toAbsolutePath().normalize().toString(), compressionLevel);
     }
 
     /**
@@ -45,19 +34,8 @@ public class FastZip4j {
      * @param zipFile          the destination ZIP file
      * @param compressionLevel the compression level. CompressionLevel must be between 1 (BestSpeed) and 9 (BestCompression). Higher levels typically run slower but compress more.
      */
-    public static void archiveDir(File sourceDir, File zipFile, int compressionLevel) {
-        archiveDir(sourceDir.getAbsolutePath(), zipFile.getAbsolutePath(), compressionLevel);
-    }
-
-    /**
-     * Archives a directory and its contents into a ZIP file with the specified compression level.
-     *
-     * @param sourceDir        the absolute path of the directory to be archived
-     * @param zipFile          the absolute path of the destination ZIP file
-     * @param compressionLevel the compression level. CompressionLevel must be between 1 (BestSpeed) and 9 (BestCompression). Higher levels typically run slower but compress more.
-     */
-    public static void archiveDir(String sourceDir, String zipFile, int compressionLevel) {
-        fastzip4jLib.ArchiveDir(sourceDir, zipFile, compressionLevel);
+    public static void archiveDir(Path sourceDir, Path zipFile, int compressionLevel) {
+        archiveDir(sourceDir.toAbsolutePath().normalize().toString(), zipFile.toAbsolutePath().normalize().toString(), compressionLevel);
     }
 
     /**
@@ -66,17 +44,19 @@ public class FastZip4j {
      * @param zipFile              the ZIP file to be extracted
      * @param destinationDirectory the destination directory where the contents will be extracted
      */
-    public static void extract(File zipFile, File destinationDirectory) {
-        extract(zipFile.getAbsolutePath(), destinationDirectory.getAbsolutePath());
+    public static void extract(Path zipFile, Path destinationDirectory) {
+        extract(zipFile.toAbsolutePath().normalize().toString(), destinationDirectory.toAbsolutePath().normalize().toString());
     }
 
-    /**
-     * Extracts the contents of a ZIP file into the specified destination directory.
-     *
-     * @param zipFile              the absolute path of the ZIP file to be extracted
-     * @param destinationDirectory the absolute path of the destination directory where the contents will be extracted
-     */
-    public static void extract(String zipFile, String destinationDirectory) {
+    private static void archiveFile(String sourceFile, String zipFile, int compressionLevel) {
+        fastzip4jLib.ArchiveFile(sourceFile, zipFile, compressionLevel);
+    }
+
+    private static void archiveDir(String sourceDir, String zipFile, int compressionLevel) {
+        fastzip4jLib.ArchiveDir(sourceDir, zipFile, compressionLevel);
+    }
+
+    private static void extract(String zipFile, String destinationDirectory) {
         fastzip4jLib.Extract(zipFile, destinationDirectory);
     }
 }
