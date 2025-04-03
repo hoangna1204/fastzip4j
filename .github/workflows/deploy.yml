@@ -44,6 +44,8 @@ jobs:
         id: extract_version
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
+          # Remove 'v' prefix if it exists
+          VERSION=${VERSION#v}
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Extracted version: ${VERSION}"
 
