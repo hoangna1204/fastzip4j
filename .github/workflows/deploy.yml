@@ -32,8 +32,8 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
+          server-username: ${{ secrets.MAVEN_CENTRAL_REPO_USERNAME }}
+          server-password: ${{ secrets.MAVEN_CENTRAL_REPO_PASSWORD }}
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
@@ -64,7 +64,7 @@ jobs:
                 <password>\${env.GITHUB_TOKEN}</password>
               </server>
               <server>
-                <id>${server}</id>
+                <id>ossrh</id>
                 <username>\${env.MAVEN_USERNAME}</username>
                 <password>\${env.MAVEN_PASSWORD}</password>
               </server>
