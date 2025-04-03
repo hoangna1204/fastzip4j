@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Deploy to Git Repository
 
 on:
   push:
@@ -65,7 +65,7 @@ jobs:
         working-directory: ./fastzip4j
       
       - name: Deploy to GitHub Packages
-        run: mvn deploy -Dproject.version=${{ env.VERSION }}
+        run: mvn deploy -Dproject.version=${{ env.VERSION }} -Dgpg.skip=true
         working-directory: ./fastzip4j
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
