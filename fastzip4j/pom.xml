@@ -108,7 +108,7 @@
                             <goal>sign</goal>
                         </goals>
                         <configuration>
-                            <signer>hn</signer>
+                            <signer>bc</signer>
                         </configuration>
                     </execution>
                 </executions>
