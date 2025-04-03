@@ -64,7 +64,7 @@ jobs:
                 <password>\${env.GITHUB_TOKEN}</password>
               </server>
               <server>
-                <id>ossrh</id>
+                <id>central</id>
                 <username>\${env.MAVEN_USERNAME}</username>
                 <password>\${env.MAVEN_PASSWORD}</password>
               </server>
