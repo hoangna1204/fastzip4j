@@ -9,7 +9,7 @@ Note: FastZip4j does not support file overwriting. If you attempt to archive fil
 
 # Example
 ## Archive Single File
-When archiving a single file, the FastZip4j will automatically create a ZIP file if one does not already exist. If the ZIP file is present, the new file will be added to the existing archive.
+When archiving a single file, the FastZip4j will automatically create a ZIP file if one does not already exist. If the ZIP file is present, the file will be added to the existing archive.
 ```java
 /*
 CompressionLevel must be between 1 (BestSpeed) and 9 (BestCompression). 
