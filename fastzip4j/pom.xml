@@ -3,11 +3,12 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.fastzip4j</groupId>
+    <groupId>io.github.hoangna1204</groupId>
     <artifactId>fastzip4j</artifactId>
     <version>${revision}</version>
     <name>fastzip4j</name>
     <description>A FastZip Go Library for Java</description>
+    <url>https://github.com/hoangna1204/fastzip4j</url>
 
     <licenses>
         <license>
