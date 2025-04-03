@@ -38,5 +38,5 @@ jobs:
         working-directory: ./fastzip4j
 
       - name: Build artifact
-        run: mvn clean install
+        run: mvn clean install -Dgpg.skip=true
         working-directory: ./fastzip4j

@@ -61,7 +61,7 @@ jobs:
           EOF
 
       - name: Build artifact
-        run: mvn clean install -Dproject.version=${{ env.VERSION }}
+        run: mvn clean install -Dproject.version=${{ env.VERSION }} -Dgpg.skip=true
         working-directory: ./fastzip4j
       
       - name: Deploy to GitHub Packages
