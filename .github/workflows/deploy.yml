@@ -73,8 +73,11 @@ jobs:
           EOF
 
       - name: Build artifact
-        run: mvn clean install -Dproject.version=${{ env.VERSION }} -Dgpg.skip=true
+        run: mvn clean install -Dproject.version=${{ env.VERSION }}
         working-directory: ./fastzip4j
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Publish to Apache Maven Central
         run: mvn --batch-mode deploy -Dproject.version=${{ env.VERSION }}
