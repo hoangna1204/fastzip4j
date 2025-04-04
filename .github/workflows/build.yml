@@ -19,17 +19,21 @@ jobs:
         with:
           go-version: '1.24.1'
 
+      - name: Install Cross-Compilation Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 x86_64-w64-mingw32-gcc
+          sudo apt-get install -y gcc-multilib g++-multilib
+          sudo apt-get install -y musl-tools
+
       - name: Install Go Packages
         run: go mod tidy
         working-directory: ./fastzip4jlib
 
       - name: Build Go Lib
         run: |
+          chmod +x ./build.sh
           ./build.sh
-          # Ensure the libraries have proper permissions
-          chmod 755 ../fastzip4j/src/main/resources/lib/*.so
-          chmod 755 ../fastzip4j/src/main/resources/lib/*.dylib
-          chmod 755 ../fastzip4j/src/main/resources/lib/*.dll
         working-directory: ./fastzip4jlib
       
       - name: Verify Go Libraries
@@ -40,6 +44,9 @@ jobs:
           file ./src/main/resources/lib/libfastzip4j.*
           echo "File permissions:"
           stat ./src/main/resources/lib/libfastzip4j.*
+          echo "Verifying library formats:"
+          objdump -f ./src/main/resources/lib/libfastzip4j.so | grep -i "file format"
+          x86_64-w64-mingw32-objdump -f ./src/main/resources/lib/libfastzip4j.dll | grep -i "file format"
         working-directory: ./fastzip4j
 
       - name: Setup JDK
@@ -56,6 +63,12 @@ jobs:
         run: mvn clean install -Dgpg.skip=true
         working-directory: ./fastzip4j
         
+      - name: Verify JAR Contents
+        run: |
+          echo "Checking contents of the built JAR:"
+          jar tf target/fastzip4j-${VERSION}.jar | grep libfastzip4j
+        working-directory: ./fastzip4j
+
       - name: Check Go compile library
         working-directory: ./fastzip4j
         run: |
