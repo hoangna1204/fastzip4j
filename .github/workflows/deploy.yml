@@ -30,26 +30,34 @@ jobs:
           sudo apt-get install -y gcc-multilib g++-multilib
           sudo apt-get install -y musl-tools
 
+      - name: Extract osxcross toolchain (for macOS only)
+        if: matrix.target == 'macos'
+        run: |
+          docker create --name osxcross crazymax/osxcross
+          docker cp osxcross:/osxcross /tmp/osxcross
+          docker rm osxcross
+
       - name: Install Go Packages
         run: go mod tidy
         working-directory: ./fastzip4jlib
 
       - name: Build Go Lib
         run: |
+          mkdir -p ../fastzip4j/src/main/resources/lib/
+
           if [[ "${{ matrix.target }}" == "linux" ]]; then
-            GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.so fastzip4j.go
+            GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
+              -o ../fastzip4j/src/main/resources/lib/libfastzip4j.so fastzip4j.go
+
           elif [[ "${{ matrix.target }}" == "windows" ]]; then
-            GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dll fastzip4j.go
+            GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared \
+              -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dll fastzip4j.go
+
           elif [[ "${{ matrix.target }}" == "macos" ]]; then
-            docker run --rm \
-              -e GOOS=darwin \
-              -e GOARCH=amd64 \
-              -e CGO_ENABLED=1 \
-              -e CC=o64-clang \
-              -v ${{ github.workspace }}/fastzip4jlib:/src \
-              -v ${{ github.workspace }}/fastzip4j/src/main/resources/lib:/out \
-              crazymax/osxcross \
-              go build -v -buildmode=c-shared -o /out/libfastzip4j.dylib /src/fastzip4j.go
+            export PATH="/tmp/osxcross/target/bin:$PATH"
+            export CC=o64-clang
+            GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
+              -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib fastzip4j.go
           fi
         working-directory: ./fastzip4jlib
 
@@ -81,7 +89,6 @@ jobs:
           else
             VERSION=${GITHUB_REF#refs/tags/}
           fi
-          # Remove 'v' prefix if it exists
           VERSION=${VERSION#v}
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Extracted version: ${VERSION}"
@@ -144,5 +151,3 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_REPO_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-
-      
