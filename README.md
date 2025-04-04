@@ -1,5 +1,5 @@
 # FastZip4J
-The FastZip4J is a library which is powered by GoLang behind for performance. THe library is opinionated with a focus on speed:
+The FastZip4J is a library which is powered by GoLang behind for performance. The library is opinionated with a focus on speed:
 - Permissions, ownership (uid, gid on linux/unix) and modification times are preserved.
 - Buffers used for copying files are recycled to reduce allocations.
 - Files are archived and extracted concurrently.
