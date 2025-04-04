@@ -66,3 +66,9 @@ jobs:
         working-directory: ./fastzip4j
         run: |
           ls ./src/main/resources/lib
+
+      - name: Upload Go Library Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-go-lib
+          path: fastzip4j/src/main/resources/lib/libfastzip4j.so

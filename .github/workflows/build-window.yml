@@ -64,3 +64,9 @@ jobs:
           dir src\main\resources\lib
         shell: cmd
         working-directory: ./fastzip4j
+
+      - name: Upload Go Library Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-go-lib
+          path: fastzip4j/src/main/resources/lib/libfastzip4j.dll

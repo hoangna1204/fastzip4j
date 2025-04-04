@@ -10,66 +10,43 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [linux, windows, macos]
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      - name: Download Linux Go Library
+        uses: actions/download-artifact@v3
         with:
-          go-version: '1.24.1'
+          name: linux-go-lib
+          path: downloaded-libs/
 
-      - name: Install Cross-Compilation Tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 gcc-mingw-w64
-          sudo apt-get install -y gcc-multilib g++-multilib
-          sudo apt-get install -y musl-tools
+      - name: Download Windows Go Library
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-go-lib
+          path: downloaded-libs/
 
-      - name: Extract osxcross toolchain (for macOS only)
-        if: matrix.target == 'macos'
-        run: |
-          docker create --name osxcross crazymax/osxcross /bin/true
-          docker cp osxcross:/osxcross /tmp/osxcross
-          docker rm osxcross
-      
-      - name: Set up osxcross environment (macOS only)
-        if: matrix.target == 'macos'
-        run: |
-          echo "/tmp/osxcross/target/bin" >> $GITHUB_PATH
-          echo "/tmp/osxcross/target/bin" >> $PATH
-          echo "CC=o64-clang" >> $GITHUB_ENV
+      - name: Download macOS Go Library
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-go-lib
+          path: downloaded-libs/
 
-      - name: Install Go Packages
-        run: go mod tidy
-        working-directory: ./fastzip4jlib
-
-      - name: Build Go Lib
+      - name: Create Resources Directory
+        run: mkdir -p ./src/main/resources/lib
+        working-directory: ./fastzip4j
+  
+      - name: Copy Libraries to Resources Folder
         run: |
-          mkdir -p ../fastzip4j/src/main/resources/lib/
-      
-          if [[ "${{ matrix.target }}" == "linux" ]]; then
-            GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
-              -o ../fastzip4j/src/main/resources/lib/libfastzip4j.so fastzip4j.go
-      
-          elif [[ "${{ matrix.target }}" == "windows" ]]; then
-            GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared \
-              -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dll fastzip4j.go
-      
-          elif [[ "${{ matrix.target }}" == "macos" ]]; then
-            GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
-              -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib fastzip4j.go
-          fi
-        working-directory: ./fastzip4jlib
-
-      - name: Verify Go Libraries
-        run: |
-          echo "Checking Go libraries in resources directory:"
-          ls -la ./src/main/resources/lib/
+          cp downloaded-libs/libfastzip4j.so ./src/main/resources/lib/
+          cp downloaded-libs/libfastzip4j.dll ./src/main/resources/lib/
+          cp downloaded-libs/libfastzip4j.dylib ./src/main/resources/lib/
+        shell: bash
+        working-directory: ./fastzip4j
+  
+      - name: Verify Copied Libraries
+        run: ls -la fastzip4j/src/main/resources/lib/
         working-directory: ./fastzip4j
 
       - name: Setup JDK
