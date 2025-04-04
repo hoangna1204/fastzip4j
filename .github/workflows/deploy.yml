@@ -16,19 +16,19 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download Linux Go Library
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: linux-go-lib
           path: downloaded-libs/
 
       - name: Download Windows Go Library
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows-go-lib
           path: downloaded-libs/
 
       - name: Download macOS Go Library
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: macos-go-lib
           path: downloaded-libs/
