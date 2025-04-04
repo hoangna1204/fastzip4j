@@ -36,13 +36,13 @@ jobs:
       - name: Build Go Lib
         run: |
           if [[ "${{ matrix.target }}" == "linux" ]]; then
-            GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared -o ./src/main/resources/lib/libfastzip4j.so
+            GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.so fastzip4j.go
           elif [[ "${{ matrix.target }}" == "windows" ]]; then
-            GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared -o ./src/main/resources/lib/libfastzip4j.dll
+            GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dll fastzip4j.go
           elif [[ "${{ matrix.target }}" == "macos" ]]; then
             docker run --rm -v $(pwd):/work -w /work/fastzip4jlib \
               ghcr.io/tpoechtrager/osxcross:latest \
-              /bin/bash -c "CC=o64-clang GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib"
+              /bin/bash -c "CC=o64-clang GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib fastzip4j.go"
           fi
         working-directory: ./fastzip4jlib
       
