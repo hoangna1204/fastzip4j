@@ -36,6 +36,12 @@ jobs:
           docker cp osxcross:/osxcross /tmp/osxcross
           docker rm osxcross
 
+      - name: Set up osxcross environment (macOS only)
+        if: matrix.target == 'macos'
+        run: |
+          echo "/tmp/osxcross/target/bin" >> $GITHUB_PATH
+          echo "CC=o64-clang" >> $GITHUB_ENV
+
       - name: Install Go Packages
         run: go mod tidy
         working-directory: ./fastzip4jlib
@@ -43,18 +49,16 @@ jobs:
       - name: Build Go Lib
         run: |
           mkdir -p ../fastzip4j/src/main/resources/lib/
-
+      
           if [[ "${{ matrix.target }}" == "linux" ]]; then
             GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
               -o ../fastzip4j/src/main/resources/lib/libfastzip4j.so fastzip4j.go
-
+      
           elif [[ "${{ matrix.target }}" == "windows" ]]; then
             GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared \
               -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dll fastzip4j.go
-
+      
           elif [[ "${{ matrix.target }}" == "macos" ]]; then
-            export PATH="/tmp/osxcross/target/bin:$PATH"
-            export CC=o64-clang
             GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
               -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib fastzip4j.go
           fi
