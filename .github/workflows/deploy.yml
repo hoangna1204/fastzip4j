@@ -8,9 +8,16 @@ on:
     types: [created]
 
 jobs:
-  build:
+  checkout-code:
     runs-on: ubuntu-latest
-    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [checkout-code, build-linux, build-windows, build-macos]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
