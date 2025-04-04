@@ -44,9 +44,9 @@ jobs:
           java-version: '21'
 
       - name: Setup Maven
-        uses: actions/setup-maven@v4
+        uses: stCarolas/setup-maven@v5
         with:
-          maven-version: '3.9.6' # Or install manually if needed
+          maven-version: 3.8.2
 
       - name: Build artifact
         run: mvn clean install -Dgpg.skip=true -Drevision=SNAPSHOT
