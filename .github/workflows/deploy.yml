@@ -279,6 +279,11 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Extracted version: ${VERSION}"
 
+      - name: Check Go compile library
+        working-directory: ./fastzip4j
+        run: |
+          ls ./src/main/resources/lib
+
       - name: Build artifact
         run: mvn clean install -Dproject.version=${{ env.VERSION }}
         working-directory: ./fastzip4j
@@ -288,14 +293,10 @@ jobs:
 
       - name: Verify JAR Contents
         run: |
+          ls ./target
           echo "Checking contents of the built JAR:"
-          jar tf target/fastzip4j-${VERSION}.jar | grep libfastzip4j
+          jar tf ./target/fastzip4j-${VERSION}.jar | grep libfastzip4j
         working-directory: ./fastzip4j
-
-      - name: Check Go compile library
-        working-directory: ./fastzip4j
-        run: |
-          ls ./src/main/resources/lib
 
       - name: Configure Maven for GitHub Packages
         if: github.event_name == 'release'
