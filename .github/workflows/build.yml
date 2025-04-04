@@ -24,8 +24,23 @@ jobs:
         working-directory: ./fastzip4jlib
 
       - name: Build Go Lib
-        run: ./build.sh
+        run: |
+          ./build.sh
+          # Ensure the libraries have proper permissions
+          chmod 755 ../fastzip4j/src/main/resources/lib/*.so
+          chmod 755 ../fastzip4j/src/main/resources/lib/*.dylib
+          chmod 755 ../fastzip4j/src/main/resources/lib/*.dll
         working-directory: ./fastzip4jlib
+      
+      - name: Verify Go Libraries
+        run: |
+          echo "Checking Go libraries in resources directory:"
+          ls -la ./src/main/resources/lib/
+          echo "File types:"
+          file ./src/main/resources/lib/libfastzip4j.*
+          echo "File permissions:"
+          stat ./src/main/resources/lib/libfastzip4j.*
+        working-directory: ./fastzip4j
 
       - name: Setup JDK
         uses: actions/setup-java@v4
