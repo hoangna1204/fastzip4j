@@ -40,3 +40,8 @@ jobs:
       - name: Build artifact
         run: mvn clean install -Dgpg.skip=true
         working-directory: ./fastzip4j
+        
+      - name: Check Go compile library
+        working-directory: ./fastzip4j
+        run: |
+          ls ./src/main/resources/lib
