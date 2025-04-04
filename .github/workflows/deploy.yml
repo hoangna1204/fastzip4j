@@ -42,10 +42,14 @@ jobs:
             GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dll fastzip4j.go
           elif [[ "${{ matrix.target }}" == "macos" ]]; then
             docker run --rm \
-              -v ${{ github.workspace }}/fastzip4jlib:/go/src/fastzip4jlib \
+              -e GOOS=darwin \
+              -e GOARCH=amd64 \
+              -e CGO_ENABLED=1 \
+              -e CC=o64-clang \
+              -v ${{ github.workspace }}/fastzip4jlib:/src \
               -v ${{ github.workspace }}/fastzip4j/src/main/resources/lib:/out \
               crazymax/osxcross \
-              /bin/sh -c "cd /go/src/fastzip4jlib && CC=o64-clang CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -buildmode=c-shared -o /out/libfastzip4j.dylib fastzip4j.go"
+              go build -v -buildmode=c-shared -o /out/libfastzip4j.dylib /src/fastzip4j.go
           fi
         working-directory: ./fastzip4jlib
 
