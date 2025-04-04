@@ -243,11 +243,11 @@ jobs:
 
       - name: Copy Libraries to Resources Folder
         run: |
-          cp downloaded-libs/libfastzip4j.so ./src/main/resources/lib/
-          cp downloaded-libs/libfastzip4j.dll ./src/main/resources/lib/
-          cp downloaded-libs/libfastzip4j.dylib ./src/main/resources/lib/
+          cp downloaded-libs/libfastzip4j.so ./fastzip4j/src/main/resources/lib/
+          cp downloaded-libs/libfastzip4j.dll ./fastzip4j/src/main/resources/lib/
+          cp downloaded-libs/libfastzip4j.dylib ./fastzip4j/src/main/resources/lib/
         shell: bash
-        working-directory: ./fastzip4j
+        working-directory: .
 
       - name: Verify Copied Libraries
         run: ls -la ./src/main/resources/lib/
