@@ -29,20 +29,6 @@ jobs:
           sudo apt-get install -y gcc-multilib g++-multilib
           sudo apt-get install -y musl-tools
       
-      - name: Extract osxcross toolchain (for macOS only)
-        if: matrix.target == 'macos'
-        run: |
-          docker create --name osxcross crazymax/osxcross /bin/true
-          docker cp osxcross:/osxcross /tmp/osxcross
-          docker rm osxcross
-
-      - name: Set up osxcross environment (macOS only)
-        if: matrix.target == 'macos'
-        run: |
-          echo "/tmp/osxcross/target/bin" >> $GITHUB_PATH
-          echo "/tmp/osxcross/target/bin" >> $PATH
-          echo "CC=o64-clang" >> $GITHUB_ENV
-
       - name: Install Go Packages
         run: go mod tidy
         working-directory: ./fastzip4jlib

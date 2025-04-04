@@ -1,4 +1,4 @@
-package main
+package fastzip4j
 
 /*
 #include <stdlib.h>
@@ -7,19 +7,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/klauspost/compress/zip"
-	"github.com/saracen/fastzip"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/klauspost/compress/zip"
+	"github.com/saracen/fastzip"
 )
 
 import "C"
 
 const temporaryRootPath = ".fastzip4j/"
-
-func main() {}
 
 //export ArchiveFile
 func ArchiveFile(SourceFile *C.char, ZipDestination *C.char, CompressionLevel int) {
