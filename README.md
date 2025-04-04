@@ -1,11 +1,9 @@
 # FastZip4J
-The FastZip4J is a library which uses the GoLang fastzip ``https://github.com/saracen/fastzip`` behind for performance and follow the same approach as ``fastzip``:
+The FastZip4J is a library which is powered by GoLang behind for performance. THe library is opinionated with a focus on speed:
 - Permissions, ownership (uid, gid on linux/unix) and modification times are preserved.
 - Buffers used for copying files are recycled to reduce allocations.
 - Files are archived and extracted concurrently.
-- ``github.com/klauspost/compress/flate`` library is used for compression and decompression.
-
-Note: FastZip4j does not support file overwriting. If you attempt to archive files with the same name, an error will be raised.
+- File overwriting is not supported. If you attempt to archive files with the same name, an error will be raised.
 
 # Example
 ## Archive Single File

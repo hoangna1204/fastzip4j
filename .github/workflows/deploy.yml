@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*'
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -43,13 +45,30 @@ jobs:
       - name: Extract Version from Tag
         id: extract_version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION=${{ github.event.release.tag_name }}
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
           # Remove 'v' prefix if it exists
           VERSION=${VERSION#v}
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Extracted version: ${VERSION}"
 
+      - name: Build artifact
+        run: mvn clean install -Dproject.version=${{ env.VERSION }}
+        working-directory: ./fastzip4j
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      
+      - name: Check Go compile library
+        working-directory: ./fastzip4j
+        run: |
+          ls ./src/main/resources/lib
+
       - name: Configure Maven for GitHub Packages
+        if: github.event_name == 'release'
         run: |
           mkdir -p ~/.m2
           cat > ~/.m2/settings.xml << EOF
@@ -72,14 +91,15 @@ jobs:
           </settings>
           EOF
 
-      - name: Build artifact
-        run: mvn clean install -Dproject.version=${{ env.VERSION }}
+      - name: Deploy to GitHub Packages
+        if: github.event_name == 'release'
+        run: mvn deploy -Dproject.version=${{ env.VERSION }} -Dgpg.skip=true
         working-directory: ./fastzip4j
         env:
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to Apache Maven Central
+      - name: Publish to Maven Central
+        if: github.event_name == 'release'
         run: mvn --batch-mode deploy -Dproject.version=${{ env.VERSION }}
         working-directory: ./fastzip4j
         env:
@@ -88,8 +108,4 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
-      - name: Deploy to GitHub Packages
-        run: mvn deploy -Dproject.version=${{ env.VERSION }} -Dgpg.skip=true
-        working-directory: ./fastzip4j
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
