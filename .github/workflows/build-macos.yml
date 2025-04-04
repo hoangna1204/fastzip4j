@@ -62,7 +62,7 @@ jobs:
           ls ./src/main/resources/lib
   
       - name: Upload Go Library Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macos-go-lib
           path: fastzip4j/src/main/resources/lib/libfastzip4j.dylib
