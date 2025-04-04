@@ -309,11 +309,6 @@ jobs:
                               https://maven.apache.org/xsd/settings-1.0.0.xsd">
             <servers>
               <server>
-                <id>github</id>
-                <username>\${env.GITHUB_ACTOR}</username>
-                <password>\${env.GITHUB_TOKEN}</password>
-              </server>
-              <server>
                 <id>central</id>
                 <username>\${env.MAVEN_USERNAME}</username>
                 <password>\${env.MAVEN_PASSWORD}</password>
@@ -321,13 +316,6 @@ jobs:
             </servers>
           </settings>
           EOF
-
-      - name: Deploy to GitHub Packages
-        if: github.event_name == 'release'
-        run: mvn deploy -Drevision=${{ env.VERSION }} -Dgpg.skip=true
-        working-directory: ./fastzip4j
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Maven Central
         if: github.event_name == 'release'
