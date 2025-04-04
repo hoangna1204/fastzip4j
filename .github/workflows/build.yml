@@ -60,13 +60,13 @@ jobs:
         working-directory: ./fastzip4j
 
       - name: Build artifact
-        run: mvn clean install -Dgpg.skip=true
+        run: mvn clean install -Dgpg.skip=true -Dproject.version=SNAPSHOT
         working-directory: ./fastzip4j
         
       - name: Verify JAR Contents
         run: |
           echo "Checking contents of the built JAR:"
-          jar tf target/fastzip4j-${VERSION}.jar | grep libfastzip4j
+          jar tf target/fastzip4j-SNAPSHOT.jar | grep libfastzip4j
         working-directory: ./fastzip4j
 
       - name: Check Go compile library
