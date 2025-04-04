@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [linux, windows, macos]
 
     steps:
       - name: Checkout code
@@ -33,8 +36,15 @@ jobs:
 
       - name: Build Go Lib
         run: |
-          chmod +x ./build.sh
-          ./build.sh
+          if [[ "${{ matrix.target }}" == "linux" ]]; then
+            GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared -o ./src/main/resources/lib/libfastzip4j.so
+          elif [[ "${{ matrix.target }}" == "windows" ]]; then
+            GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CGO_ENABLED=1 go build -buildmode=c-shared -o ./src/main/resources/lib/libfastzip4j.dll
+          elif [[ "${{ matrix.target }}" == "macos" ]]; then
+            docker run --rm -v $(pwd):/work -w /work/fastzip4jlib \
+              ghcr.io/tpoechtrager/osxcross:latest \
+              /bin/bash -c "CC=o64-clang GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib"
+          fi
         working-directory: ./fastzip4jlib
 
       - name: Verify Go Libraries
