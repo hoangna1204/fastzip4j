@@ -16,6 +16,7 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
+    needs: checkout-code
 
     steps:
       - name: Checkout code
@@ -79,8 +80,10 @@ jobs:
         with:
           name: linux-go-lib
           path: fastzip4j/src/main/resources/lib/libfastzip4j.so
+
   build-macos:
     runs-on: macos-latest
+    needs: checkout-code
 
     steps:
       - name: Checkout code
@@ -132,7 +135,7 @@ jobs:
         working-directory: ./fastzip4j
         run: |
           ls ./src/main/resources/lib
-  
+
       - name: Upload Go Library Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -141,6 +144,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    needs: checkout-code
 
     steps:
       - name: Checkout code
@@ -232,7 +236,11 @@ jobs:
       - name: Create Resources Directory
         run: mkdir -p ./src/main/resources/lib
         working-directory: ./fastzip4j
-  
+
+      - name: List Downloaded Artifacts for Debugging
+        run: ls -la downloaded-libs/
+        working-directory: .
+
       - name: Copy Libraries to Resources Folder
         run: |
           cp downloaded-libs/libfastzip4j.so ./src/main/resources/lib/
@@ -240,9 +248,9 @@ jobs:
           cp downloaded-libs/libfastzip4j.dylib ./src/main/resources/lib/
         shell: bash
         working-directory: ./fastzip4j
-  
+
       - name: Verify Copied Libraries
-        run: ls -la fastzip4j/src/main/resources/lib/
+        run: ls -la ./src/main/resources/lib/
         working-directory: ./fastzip4j
 
       - name: Setup JDK
