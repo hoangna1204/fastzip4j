@@ -7,11 +7,62 @@ on:
   pull_request:
 
 jobs:
-  build:
-    uses: ./.github/workflows/build-go-lib.yml
-    with:
-      target-os: 'darwin'
-      runner: 'macos-latest'
-      output-file: 'libfastzip4j.dylib'
-      cc-compiler: ''
-      shell-type: 'bash'
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.1'
+
+      - name: Install Go Packages
+        run: go mod tidy
+        working-directory: ./fastzip4jlib
+
+      - name: Build Go Lib for macOS
+        run: |
+          mkdir -p ../fastzip4j/src/main/resources/lib/
+          GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
+            -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib fastzip4j.go
+        working-directory: ./fastzip4jlib
+
+      - name: Verify Go Libraries
+        run: |
+          echo "Checking Go libraries in resources directory:"
+          ls -la ./src/main/resources/lib/
+        working-directory: ./fastzip4j
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Maven
+        run: brew install maven
+        working-directory: ./fastzip4j
+
+      - name: Build artifact
+        run: mvn clean install -Dgpg.skip=true -Drevision=SNAPSHOT
+        working-directory: ./fastzip4j
+
+      - name: Verify JAR Contents
+        run: |
+          echo "Checking contents of the built JAR:"
+          jar tf target/fastzip4j-SNAPSHOT.jar | grep libfastzip4j
+        working-directory: ./fastzip4j
+
+      - name: Check Go compile library
+        working-directory: ./fastzip4j
+        run: |
+          ls ./src/main/resources/lib
+  
+      - name: Upload Go Library Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-go-lib
+          path: fastzip4j/src/main/resources/lib/libfastzip4j.dylib
