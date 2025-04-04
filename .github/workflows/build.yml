@@ -50,13 +50,6 @@ jobs:
         run: |
           echo "Checking Go libraries in resources directory:"
           ls -la ./src/main/resources/lib/
-          echo "File types:"
-          file ./src/main/resources/lib/libfastzip4j.*
-          echo "File permissions:"
-          stat ./src/main/resources/lib/libfastzip4j.*
-          echo "Verifying library formats:"
-          objdump -f ./src/main/resources/lib/libfastzip4j.so | grep -i "file format"
-          x86_64-w64-mingw32-objdump -f ./src/main/resources/lib/libfastzip4j.dll | grep -i "file format"
         working-directory: ./fastzip4j
 
       - name: Setup JDK
