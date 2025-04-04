@@ -32,7 +32,7 @@ jobs:
       - name: Extract osxcross toolchain (for macOS only)
         if: matrix.target == 'macos'
         run: |
-          docker create --name osxcross crazymax/osxcross
+          docker create --name osxcross crazymax/osxcross /bin/true
           docker cp osxcross:/osxcross /tmp/osxcross
           docker rm osxcross
 
