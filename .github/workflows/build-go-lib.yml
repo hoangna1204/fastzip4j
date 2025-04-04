@@ -1,0 +1,128 @@
+name: Build Go Library Template
+
+on:
+  workflow_call:
+    inputs:
+      target-os:
+        required: true
+        type: string
+        description: 'The target operating system (linux, windows, darwin)'
+      runner:
+        required: true
+        type: string
+        description: 'The runner to use (ubuntu-latest, windows-latest, macos-latest)'
+      output-file:
+        required: true
+        type: string
+        description: 'The output file name (e.g., libfastzip4j.so, libfastzip4j.dll, libfastzip4j.dylib)'
+      cc-compiler:
+        required: false
+        type: string
+        description: 'The C compiler for CGO (e.g., x86_64-w64-mingw32-gcc for Windows)'
+        default: ''
+      shell-type:
+        required: true
+        type: string
+        description: 'The shell type to use (bash, cmd, pwsh)'
+        default: 'bash'
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.1'
+
+      - name: Install Cross-Compilation Tools (Linux/Windows)
+        if: inputs.runner == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          if [ "${{ inputs.target-os }}" == "windows" ]; then
+            sudo apt-get install -y gcc-mingw-w64-x86-64
+          elif [ "${{ inputs.target-os }}" == "linux" ]; then
+            sudo apt-get install -y gcc-multilib g++-multilib musl-tools
+          fi
+        shell: bash
+
+      - name: Install Go Packages
+        run: go mod tidy
+        working-directory: ./fastzip4jlib
+        shell: bash
+
+      - name: Build Go Lib
+        run: |
+          mkdir -p ${{ inputs.runner == 'windows-latest' && '..\\fastzip4j\\src\\main\\resources\\lib\\' || '../fastzip4j/src/main/resources/lib/' }}
+          ${{ inputs.shell-type == 'pwsh' && '$env:GOOS="' || '' }}${{ inputs.target-os }}${{ inputs.shell-type == 'pwsh' && '"; $env:GOARCH="amd64"; $env:CGO_ENABLED="1"; ' || ' GOARCH=amd64 CGO_ENABLED=1 ' }}${{ inputs.cc-compiler && format('CC={0} ', inputs.cc-compiler) }}go build -buildmode=c-shared -o ${{ inputs.runner == 'windows-latest' && '..\\fastzip4j\\src\\main\\resources\\lib\\' || '../fastzip4j/src/main/resources/lib/' }}${{ inputs.output-file }} fastzip4j.go
+        working-directory: ./fastzip4jlib
+        shell: bash
+
+      - name: Verify Go Libraries
+        run: |
+          echo "Checking Go libraries in resources directory:"
+          if [ "${{ inputs.runner }}" == "windows-latest" ]; then
+            dir ${{ inputs.runner == 'windows-latest' && '..\\fastzip4j\\src\\main\\resources\\lib\\' || '../fastzip4j/src/main/resources/lib/' }}
+          else
+            ls -la ${{ inputs.runner == 'windows-latest' && '../fastzip4j/src/main/resources/lib/' || '../fastzip4j/src/main/resources/lib/' }}
+          fi
+        working-directory: ./fastzip4jlib
+        shell: bash
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Maven
+        uses: stCarolas/setup-maven@v5
+        if: inputs.runner == 'windows-latest'
+        with:
+          maven-version: '3.8.2'
+
+      - name: Setup Maven (Ubuntu)
+        if: inputs.runner == 'ubuntu-latest'
+        run: sudo apt-get install -y maven
+        shell: bash
+
+      - name: Setup Maven (macOS)
+        if: inputs.runner == 'macos-latest'
+        run: brew install maven
+        shell: bash
+
+      - name: Build artifact
+        run: mvn clean install -Dgpg.skip=true -Drevision=SNAPSHOT
+        working-directory: ./fastzip4j
+        shell: bash
+
+      - name: Verify JAR Contents
+        run: |
+          echo "Checking contents of the built JAR:"
+          if [ "${{ inputs.runner }}" == "windows-latest" ]; then
+            jar tf ${{ inputs.runner == 'windows-latest' && 'target\\fastzip4j-SNAPSHOT.jar' || 'target/fastzip4j-SNAPSHOT.jar' }} | findstr libfastzip4j
+          else
+            jar tf target/fastzip4j-SNAPSHOT.jar | grep libfastzip4j
+          fi
+        working-directory: ./fastzip4j
+        shell: bash
+
+      - name: Check Go compile library
+        run: |
+          if [ "${{ inputs.runner }}" == "windows-latest" ]; then
+            dir ${{ inputs.runner == 'windows-latest' && '..\\fastzip4j\\src\\main\\resources\\lib\\' || '../fastzip4j/src/main/resources/lib/' }}
+          else
+            ls -la ${{ inputs.runner == 'windows-latest' && '../fastzip4j/src/main/resources/lib/' || '../fastzip4j/src/main/resources/lib/' }}
+          fi
+        working-directory: ./fastzip4jlib
+        shell: bash
+
+      - name: Upload Go Library Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.target-os }}-go-lib
+          path: ${{ inputs.runner == 'windows-latest' && 'fastzip4j\\src\\main\\resources\\lib\\' || 'fastzip4j/src/main/resources/lib/' }}${{ inputs.output-file }}
