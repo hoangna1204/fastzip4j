@@ -285,7 +285,7 @@ jobs:
           ls ./src/main/resources/lib
 
       - name: Build artifact
-        run: mvn clean install -Dproject.version=${{ env.VERSION }}
+        run: mvn clean install -Drevision=${{ env.VERSION }}
         working-directory: ./fastzip4j
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
@@ -324,14 +324,14 @@ jobs:
 
       - name: Deploy to GitHub Packages
         if: github.event_name == 'release'
-        run: mvn deploy -Dproject.version=${{ env.VERSION }} -Dgpg.skip=true
+        run: mvn deploy -Drevision=${{ env.VERSION }} -Dgpg.skip=true
         working-directory: ./fastzip4j
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Maven Central
         if: github.event_name == 'release'
-        run: mvn --batch-mode deploy -Dproject.version=${{ env.VERSION }}
+        run: mvn --batch-mode deploy -Drevision=${{ env.VERSION }}
         working-directory: ./fastzip4j
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_REPO_USERNAME }}
