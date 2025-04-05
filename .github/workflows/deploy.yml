@@ -315,6 +315,10 @@ jobs:
           VERSION=${VERSION#v}
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Extracted version: ${VERSION}"
+        
+      - name: Build artifact
+        run: mvn clean install -Drevision=${VERSION}
+        working-directory: ./fastzip4j
 
       - name: Verify JAR Contents
         run: |
