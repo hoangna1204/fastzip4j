@@ -319,6 +319,11 @@ jobs:
       - name: Build artifact
         run: mvn clean install -Drevision=${VERSION}
         working-directory: ./fastzip4j
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_REPO_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_REPO_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Verify JAR Contents
         run: |
