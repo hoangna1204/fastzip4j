@@ -1,4 +1,4 @@
-name: Build macOS
+name: CI macOS
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build-macos:
+  ci-macos:
     runs-on: macos-latest
 
     steps:
@@ -47,7 +47,7 @@ jobs:
         working-directory: ./fastzip4j
 
       - name: Build artifact
-        run: mvn clean install -Dgpg.skip=true -Drevision=SNAPSHOT
+        run: mvn clean verify -Dgpg.skip=true
         working-directory: ./fastzip4j
 
       - name: Verify JAR Contents
@@ -60,9 +60,3 @@ jobs:
         working-directory: ./fastzip4j
         run: |
           ls ./src/main/resources/lib
-  
-      - name: Upload Go Library Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-go-lib
-          path: fastzip4j/src/main/resources/lib/libfastzip4j.dylib

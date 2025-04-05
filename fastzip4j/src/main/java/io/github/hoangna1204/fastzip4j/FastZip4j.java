@@ -1,4 +1,4 @@
-package com.fastzip4j;
+package io.github.hoangna1204.fastzip4j;
 
 import com.sun.jna.Native;
 

@@ -1,4 +1,4 @@
-name: Build Windows
+name: CI Windows
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build-windows:
+  ci-windows:
     runs-on: windows-latest
 
     steps:
@@ -49,7 +49,7 @@ jobs:
           maven-version: 3.8.2
 
       - name: Build artifact
-        run: mvn clean install -D"gpg.skip"=true -Drevision=SNAPSHOT
+        run: mvn clean verify -D"gpg.skip"=true -Drevision=SNAPSHOT
         working-directory: ./fastzip4j
 
       - name: Verify JAR Contents
@@ -64,9 +64,3 @@ jobs:
           dir src\main\resources\lib
         shell: cmd
         working-directory: ./fastzip4j
-
-      - name: Upload Go Library Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-go-lib
-          path: fastzip4j/src/main/resources/lib/libfastzip4j.dll
