@@ -254,6 +254,12 @@ jobs:
       - name: Build artifact
         run: mvn clean install -Dgpg.skip=true -Drevision=SNAPSHOT
         working-directory: ./fastzip4j
+      
+      - name: Upload Go Library Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-artifacts
+          path: fastzip4j/src/main/resources/lib/libfastzip4j*
 
   deploy:
     runs-on: ubuntu-latest
