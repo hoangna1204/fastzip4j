@@ -317,7 +317,7 @@ jobs:
           echo "Extracted version: ${VERSION}"
         
       - name: Build artifact
-        run: mvn clean install -Drevision=${VERSION}
+        run: mvn clean install -Drevision=${{ env.VERSION }}
         working-directory: ./fastzip4j
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_REPO_USERNAME }}
