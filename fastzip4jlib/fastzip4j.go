@@ -53,42 +53,50 @@ func ArchiveFile(SourceFile *C.char, ZipDestination *C.char, CompressionLevel in
 
 		e, err := fastzip.NewExtractor(zipDest, temporaryPath)
 		if err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 		defer func(e *fastzip.Extractor) {
 			err := e.Close()
 			if err != nil {
+				os.RemoveAll(temporaryPath)
 				panic(err)
 			}
 		}(e)
 		if err = e.Extract(context.Background()); err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}
 
 	err = copyFile(srcFile, temporaryPath)
 	if err != nil {
+		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 
 	w, err := os.Create(zipDest)
 	if err != nil {
+		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(w *os.File) {
 		err := w.Close()
 		if err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(w)
 
 	archiver, err := fastzip.NewArchiver(w, temporaryPath)
 	if err != nil {
+		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(archiver *fastzip.Archiver) {
 		err := archiver.Close()
 		if err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(archiver)
@@ -102,6 +110,7 @@ func ArchiveFile(SourceFile *C.char, ZipDestination *C.char, CompressionLevel in
 	})
 
 	if err = archiver.Archive(context.Background(), files); err != nil {
+		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 
@@ -129,11 +138,13 @@ func ArchiveDir(SourceDir *C.char, ZipFile *C.char, CompressionLevel int) {
 
 	_, err := os.Stat(zipDest)
 	zipFileExists := !os.IsNotExist(err)
+	cleanDsStoreFile(srcFile)
 
 	if zipFileExists {
 		_, err := os.Stat(temporaryPath)
 		if os.IsNotExist(err) {
 			err := os.MkdirAll(temporaryPath, os.ModePerm)
+			cleanDsStoreFile(temporaryPath)
 			if err != nil {
 				panic(err)
 			}
@@ -141,30 +152,36 @@ func ArchiveDir(SourceDir *C.char, ZipFile *C.char, CompressionLevel int) {
 
 		e, err := fastzip.NewExtractor(zipDest, temporaryPath)
 		if err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 		defer func(e *fastzip.Extractor) {
 			err := e.Close()
 			if err != nil {
+				os.RemoveAll(temporaryPath)
 				panic(err)
 			}
 		}(e)
 		if err = e.Extract(context.Background()); err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 
 		err = os.CopyFS(temporaryPath, os.DirFS(srcFile))
 		if err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}
 	w, err := os.Create(zipDest)
 	if err != nil {
+		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(w *os.File) {
 		err := w.Close()
 		if err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(w)
@@ -175,11 +192,13 @@ func ArchiveDir(SourceDir *C.char, ZipFile *C.char, CompressionLevel int) {
 	}
 	archiver, err := fastzip.NewArchiver(w, sourcePath)
 	if err != nil {
+		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(archiver *fastzip.Archiver) {
 		err := archiver.Close()
 		if err != nil {
+			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(archiver)
@@ -193,6 +212,7 @@ func ArchiveDir(SourceDir *C.char, ZipFile *C.char, CompressionLevel int) {
 	})
 
 	if err = archiver.Archive(context.Background(), files); err != nil {
+		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 
@@ -274,5 +294,20 @@ func removeFs(path string) {
 	err := os.RemoveAll(path)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func cleanDsStoreFile(dirPath string) {
+	files, err := os.ReadDir(dirPath)
+	if err != nil {
+		panic(err)
+	}
+	for _, file := range files {
+		if file.Name() == ".DS_Store" {
+			err = os.Remove(filepath.Join(dirPath, file.Name()))
+			if err != nil {
+				panic(err)
+			}
+		}
 	}
 }

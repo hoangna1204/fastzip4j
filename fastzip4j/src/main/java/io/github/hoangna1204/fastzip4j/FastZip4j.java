@@ -2,7 +2,6 @@ package io.github.hoangna1204.fastzip4j;
 
 import com.sun.jna.Native;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -11,14 +10,12 @@ import java.nio.file.Path;
  * bindings for fast and efficient compression and decompression.
  */
 public class FastZip4j {
-    private static final String LIBRARY_NAME = "fastzip4j";
     private static final FastZip4jLib fastzip4jLib;
 
     static {
         var osName = System.getProperty("os.name").toLowerCase();
         var arch = System.getProperty("os.arch").toLowerCase();
-        String fullLibraryPath;
-        String libraryName;
+        var libraryName = "fastzip4j";
         if (osName.contains("mac")) {
             if (arch.contains("x86_64") || arch.contains("amd64")) {
                 libraryName = "fastzip4j_amd64";
@@ -27,23 +24,9 @@ public class FastZip4j {
             } else {
                 throw new UnsupportedOperationException("Unsupported architecture: " + arch);
             }
-            fullLibraryPath = libraryName + ".dylib";
-        } else if (osName.contains("windows")) {
-            fullLibraryPath = LIBRARY_NAME + ".dll";
-        } else if (osName.contains("linux")) {
-            fullLibraryPath = LIBRARY_NAME + ".so";
-        } else {
-            throw new UnsupportedOperationException("Unsupported OS: " + osName);
         }
-        var libraryPath = Path.of("src/main/resources/lib/", fullLibraryPath);
-
-        if (Files.notExists(libraryPath)) {
-            throw new LibraryNotFoundException("Native library not found: " + libraryPath);
-        }
-
         try {
-            System.load(libraryPath.toAbsolutePath().normalize().toString());
-            fastzip4jLib = Native.load(LIBRARY_NAME, FastZip4jLib.class);
+            fastzip4jLib = Native.load(libraryName, FastZip4jLib.class);
         } catch (UnsatisfiedLinkError e) {
             throw new LibraryLoadFailedException("Failed to load native library: " + e.getMessage());
         }
