@@ -98,11 +98,18 @@ jobs:
         run: go mod tidy
         working-directory: ./fastzip4jlib
 
-      - name: Build Go Lib for macOS
+      - name: Build Go Lib for macOS (amd64)
         run: |
           mkdir -p ../fastzip4j/src/main/resources/lib/
           GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -buildmode=c-shared \
-            -o ../fastzip4j/src/main/resources/lib/libfastzip4j.dylib fastzip4j.go
+            -o ../fastzip4j/src/main/resources/lib/libfastzip4j_amd64.dylib fastzip4j.go
+        working-directory: ./fastzip4jlib
+
+      - name: Build Go Lib for macOS (arm64)
+        run: |
+          mkdir -p ../fastzip4j/src/main/resources/lib/
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -buildmode=c-shared \
+            -o ../fastzip4j/src/main/resources/lib/libfastzip4j_arm64.dylib fastzip4j.go
         working-directory: ./fastzip4jlib
 
       - name: Verify Go Libraries

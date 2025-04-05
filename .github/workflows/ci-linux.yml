@@ -53,7 +53,7 @@ jobs:
         working-directory: ./fastzip4j
 
       - name: Build artifact
-        run: mvn clean verify -Dgpg.skip=true
+        run: mvn clean verify -Dgpg.skip=true -Drevision=SNAPSHOT
         working-directory: ./fastzip4j
 
       - name: Verify JAR Contents
