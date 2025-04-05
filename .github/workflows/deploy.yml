@@ -70,11 +70,6 @@ jobs:
           jar tf target/fastzip4j-SNAPSHOT.jar | grep libfastzip4j
         working-directory: ./fastzip4j
 
-      - name: Check Go compile library
-        working-directory: ./fastzip4j
-        run: |
-          ls ./src/main/resources/lib
-
       - name: Upload Go Library Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -138,16 +133,11 @@ jobs:
           jar tf target/fastzip4j-SNAPSHOT.jar | grep libfastzip4j
         working-directory: ./fastzip4j
 
-      - name: Check Go compile library
-        working-directory: ./fastzip4j
-        run: |
-          ls ./src/main/resources/lib
-
       - name: Upload Go Library Artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-go-lib
-          path: fastzip4j/src/main/resources/lib/libfastzip4j.dylib
+          path: fastzip4j/src/main/resources/lib/libfastzip4j_*.dylib
 
   build-windows:
     runs-on: windows-latest
@@ -202,21 +192,15 @@ jobs:
         shell: cmd
         working-directory: ./fastzip4j
 
-      - name: Check Go compile library
-        run: |
-          dir src\main\resources\lib
-        shell: cmd
-        working-directory: ./fastzip4j
-
       - name: Upload Go Library Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-go-lib
           path: fastzip4j/src/main/resources/lib/libfastzip4j.dll
 
-  deploy:
+  package-artifacts:
     runs-on: ubuntu-latest
-    needs: [checkout-code, build-linux, build-windows, build-macos]
+    needs: [build-linux, build-macos, build-windows]
 
     steps:
       - name: Checkout code
@@ -226,33 +210,73 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: linux-go-lib
-          path: downloaded-libs/
-
-      - name: Download Windows Go Library
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-go-lib
-          path: downloaded-libs/
+          path: downloaded-libs/linux/
 
       - name: Download macOS Go Library
         uses: actions/download-artifact@v4
         with:
           name: macos-go-lib
+          path: downloaded-libs/macos/
+
+      - name: Download Windows Go Library
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-go-lib
+          path: downloaded-libs/windows/
+
+      - name: Create Resources Directory
+        run: mkdir -p ./src/main/resources/lib
+        working-directory: ./fastzip4j
+
+      - name: Copy Libraries to Resources Folder
+        run: |
+          cp downloaded-libs/linux/libfastzip4j.so ./fastzip4j/src/main/resources/lib/
+          cp downloaded-libs/macos/libfastzip4j_*.dylib ./fastzip4j/src/main/resources/lib/
+          cp downloaded-libs/windows/libfastzip4j.dll ./fastzip4j/src/main/resources/lib/
+        shell: bash
+        working-directory: .
+
+      - name: Check Go compile library
+        working-directory: ./fastzip4j
+        run: |
+          ls ./src/main/resources/lib
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Maven
+        run: sudo apt-get install -y maven
+        working-directory: ./fastzip4j
+
+      - name: Build artifact
+        run: mvn clean install -Dgpg.skip=true -Drevision=SNAPSHOT
+        working-directory: ./fastzip4j
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [package-artifacts]
+    if: github.event_name == 'release'  # Only run on release events
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download Artifacts from Package Job
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged-artifacts
           path: downloaded-libs/
 
       - name: Create Resources Directory
         run: mkdir -p ./src/main/resources/lib
         working-directory: ./fastzip4j
 
-      - name: List Downloaded Artifacts for Debugging
-        run: ls -la downloaded-libs/
-        working-directory: .
-
       - name: Copy Libraries to Resources Folder
         run: |
-          cp downloaded-libs/libfastzip4j.so ./fastzip4j/src/main/resources/lib/
-          cp downloaded-libs/libfastzip4j.dll ./fastzip4j/src/main/resources/lib/
-          cp downloaded-libs/libfastzip4j.dylib ./fastzip4j/src/main/resources/lib/
+          cp downloaded-libs/* ./fastzip4j/src/main/resources/lib/
         shell: bash
         working-directory: .
 
@@ -286,18 +310,6 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Extracted version: ${VERSION}"
 
-      - name: Check Go compile library
-        working-directory: ./fastzip4j
-        run: |
-          ls ./src/main/resources/lib
-
-      - name: Build artifact
-        run: mvn clean install -Drevision=${{ env.VERSION }}
-        working-directory: ./fastzip4j
-        env:
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-
       - name: Verify JAR Contents
         run: |
           ls ./target
@@ -306,7 +318,6 @@ jobs:
         working-directory: ./fastzip4j
 
       - name: Configure Maven for GitHub Packages
-        if: github.event_name == 'release'
         run: |
           mkdir -p ~/.m2
           cat > ~/.m2/settings.xml << EOF
@@ -325,7 +336,6 @@ jobs:
           EOF
 
       - name: Publish to Maven Central
-        if: github.event_name == 'release'
         run: mvn --batch-mode deploy -Drevision=${{ env.VERSION }}
         working-directory: ./fastzip4j
         env:
