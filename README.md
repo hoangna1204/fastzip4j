@@ -6,6 +6,22 @@ The FastZip4J is a library which is powered by GoLang behind for performance. Th
 - File overwriting is not supported. If you attempt to archive files with the same name, an error will be raised.
 
 # Example
+## Import dependency
+
+If you are using Maven
+```xml
+<dependency>
+    <groupId>io.github.hoangna1204</groupId>
+    <artifactId>fastzip4j</artifactId>
+    <version>0.0.3</version>
+</dependency>
+```
+
+If you are using With Gradle
+```groovy
+implementation 'io.github.hoangna1204:fastzip4j:0.0.3'
+```
+
 ## Archive Single File
 When archiving a single file, the FastZip4j will automatically create a ZIP file if one does not already exist. If the ZIP file is present, the file will be added to the existing archive.
 ```java
