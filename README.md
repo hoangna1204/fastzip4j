@@ -13,13 +13,13 @@ If you are using Maven
 <dependency>
     <groupId>io.github.hoangna1204</groupId>
     <artifactId>fastzip4j</artifactId>
-    <version>0.0.3</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
 If you are using With Gradle
 ```groovy
-implementation 'io.github.hoangna1204:fastzip4j:0.0.3'
+implementation 'io.github.hoangna1204:fastzip4j:1.0.0'
 ```
 
 ## Archive Single File
