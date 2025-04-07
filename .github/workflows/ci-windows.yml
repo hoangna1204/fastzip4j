@@ -25,7 +25,6 @@ jobs:
 
       - name: Build Go Lib for Windows
         run: |
-          mkdir -p ..\fastzip4j\src\main\resources\lib\
           $env:GOOS="windows"; $env:GOARCH="amd64"; $env:CGO_ENABLED="1"; go build -buildmode=c-shared -o ..\fastzip4j\src\main\resources\lib\libfastzip4j.dll fastzip4j.go
         shell: pwsh
         working-directory: ./fastzip4jlib
