@@ -32,7 +32,7 @@ jobs:
       - name: Verify Go Libraries
         run: |
           echo "Checking Go libraries in resources directory:"
-          dir ..\fastzip4j\src\main\resources\lib\win32-x86-64\
+          dir ..\fastzip4j\src\main\resources\lib\
         shell: cmd
         working-directory: ./fastzip4jlib
 
