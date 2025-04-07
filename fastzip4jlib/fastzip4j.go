@@ -6,11 +6,9 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/klauspost/compress/zip"
 	"github.com/saracen/fastzip"
@@ -19,13 +17,15 @@ import (
 import "C"
 
 const temporaryRootPath = ".fastzip4j/"
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 func main() {}
 
 //export ArchiveFile
-func ArchiveFile(SourceFile *C.char, ZipDestination *C.char, CompressionLevel int) {
+func ArchiveFile(SourceFile *C.char, ZipDestination *C.char, TemporaryPath *C.char, CompressionLevel int) {
 	srcFile := C.GoString(SourceFile)
 	zipDest := C.GoString(ZipDestination)
+	tempDir := C.GoString(TemporaryPath)
 
 	if srcFile == "" {
 		panic("Source File cannot be empty")
@@ -36,67 +36,60 @@ func ArchiveFile(SourceFile *C.char, ZipDestination *C.char, CompressionLevel in
 	if CompressionLevel < 1 || CompressionLevel > 9 {
 		panic("CompressionLevel must be between 1 and 9! Following zlib, levels range from 1 (BestSpeed) to 9 (BestCompression); higher levels typically run slower but compress more.")
 	}
-	timestamp := fmt.Sprintf("%d", time.Now().Unix())
-	temporaryPath := temporaryRootPath + timestamp + "/"
+	if tempDir == "" {
+		panic("Temporary Path cannot be empty")
+	}
 
 	_, err := os.Stat(zipDest)
 	zipFileExists := !os.IsNotExist(err)
 
 	if zipFileExists {
-		_, err = os.Stat(temporaryPath)
+		_, err = os.Stat(tempDir)
 		if os.IsNotExist(err) {
-			err := os.MkdirAll(temporaryPath, os.ModePerm)
+			err := os.MkdirAll(tempDir, os.ModePerm)
 			if err != nil {
 				panic(err)
 			}
 		}
 
-		e, err := fastzip.NewExtractor(zipDest, temporaryPath)
+		e, err := fastzip.NewExtractor(zipDest, tempDir)
 		if err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 		defer func(e *fastzip.Extractor) {
 			err := e.Close()
 			if err != nil {
-				os.RemoveAll(temporaryPath)
 				panic(err)
 			}
 		}(e)
 		if err = e.Extract(context.Background()); err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}
 
-	err = copyFile(srcFile, temporaryPath)
+	err = copyFile(srcFile, tempDir)
 	if err != nil {
-		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 
 	w, err := os.Create(zipDest)
 	if err != nil {
-		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(w *os.File) {
 		err := w.Close()
 		if err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(w)
 
-	archiver, err := fastzip.NewArchiver(w, temporaryPath)
+	archiver, err := fastzip.NewArchiver(w, tempDir)
 	if err != nil {
-		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(archiver *fastzip.Archiver) {
 		err := archiver.Close()
 		if err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(archiver)
@@ -104,25 +97,25 @@ func ArchiveFile(SourceFile *C.char, ZipDestination *C.char, CompressionLevel in
 	archiver.RegisterCompressor(zip.Deflate, fastzip.FlateCompressor(CompressionLevel))
 
 	files := make(map[string]os.FileInfo)
-	err = filepath.Walk(temporaryPath, func(pathname string, info os.FileInfo, err error) error {
+	err = filepath.Walk(tempDir, func(pathname string, info os.FileInfo, err error) error {
 		files[pathname] = info
 		return nil
 	})
 
 	if err = archiver.Archive(context.Background(), files); err != nil {
-		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 
 	if zipFileExists {
-		removeFs(temporaryPath)
+		removeFs(tempDir)
 	}
 }
 
 //export ArchiveDir
-func ArchiveDir(SourceDir *C.char, ZipFile *C.char, CompressionLevel int) {
+func ArchiveDir(SourceDir *C.char, ZipFile *C.char, TemporaryPath *C.char, CompressionLevel int) {
 	srcFile := C.GoString(SourceDir)
 	zipDest := C.GoString(ZipFile)
+	tempDir := C.GoString(TemporaryPath)
 
 	if srcFile == "" {
 		panic("Source Folder cannot be empty!")
@@ -133,72 +126,65 @@ func ArchiveDir(SourceDir *C.char, ZipFile *C.char, CompressionLevel int) {
 	if CompressionLevel < 1 || CompressionLevel > 9 {
 		panic("CompressionLevel must be between 1 and 9! Following zlib, levels range from 1 (BestSpeed) to 9 (BestCompression); higher levels typically run slower but compress more.")
 	}
-	timestamp := fmt.Sprintf("%d", time.Now().Unix())
-	temporaryPath := temporaryRootPath + timestamp + "/"
+	if tempDir == "" {
+		panic("TemporaryPath cannot be empty!")
+	}
 
 	_, err := os.Stat(zipDest)
 	zipFileExists := !os.IsNotExist(err)
 	cleanDsStoreFile(srcFile)
 
 	if zipFileExists {
-		_, err := os.Stat(temporaryPath)
+		_, err := os.Stat(tempDir)
 		if os.IsNotExist(err) {
-			err := os.MkdirAll(temporaryPath, os.ModePerm)
-			cleanDsStoreFile(temporaryPath)
+			err := os.MkdirAll(tempDir, os.ModePerm)
+			cleanDsStoreFile(tempDir)
 			if err != nil {
 				panic(err)
 			}
 		}
 
-		e, err := fastzip.NewExtractor(zipDest, temporaryPath)
+		e, err := fastzip.NewExtractor(zipDest, tempDir)
 		if err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 		defer func(e *fastzip.Extractor) {
 			err := e.Close()
 			if err != nil {
-				os.RemoveAll(temporaryPath)
 				panic(err)
 			}
 		}(e)
 		if err = e.Extract(context.Background()); err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 
-		err = os.CopyFS(temporaryPath, os.DirFS(srcFile))
+		err = os.CopyFS(tempDir, os.DirFS(srcFile))
 		if err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}
 	w, err := os.Create(zipDest)
 	if err != nil {
-		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(w *os.File) {
 		err := w.Close()
 		if err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(w)
 
 	sourcePath := srcFile
 	if zipFileExists {
-		sourcePath = temporaryPath
+		sourcePath = tempDir
 	}
 	archiver, err := fastzip.NewArchiver(w, sourcePath)
 	if err != nil {
-		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 	defer func(archiver *fastzip.Archiver) {
 		err := archiver.Close()
 		if err != nil {
-			os.RemoveAll(temporaryPath)
 			panic(err)
 		}
 	}(archiver)
@@ -212,12 +198,11 @@ func ArchiveDir(SourceDir *C.char, ZipFile *C.char, CompressionLevel int) {
 	})
 
 	if err = archiver.Archive(context.Background(), files); err != nil {
-		os.RemoveAll(temporaryPath)
 		panic(err)
 	}
 
 	if zipFileExists {
-		removeFs(temporaryPath)
+		removeFs(tempDir)
 	}
 }
 

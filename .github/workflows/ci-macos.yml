@@ -67,3 +67,7 @@ jobs:
         working-directory: ./fastzip4j
         run: |
           ls ./src/main/resources/lib
+      
+      - name: Run tests
+        run: mvn test
+        working-directory: ./fastzip4j

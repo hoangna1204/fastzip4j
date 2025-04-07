@@ -64,3 +64,7 @@ jobs:
           dir src\main\resources\lib
         shell: cmd
         working-directory: ./fastzip4j
+
+      - name: Run tests
+        run: mvn test
+        working-directory: ./fastzip4j
