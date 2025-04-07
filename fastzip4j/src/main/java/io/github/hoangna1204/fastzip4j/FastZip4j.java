@@ -31,6 +31,8 @@ public class FastZip4j {
             } else {
                 throw new UnsupportedOperationException("Unsupported architecture: " + arch);
             }
+        } else if (osName.contains("windows")) {
+            libraryName = "libfastzip4j";
         }
         try {
             fastzip4jLib = Native.load(libraryName, FastZip4jLib.class);
