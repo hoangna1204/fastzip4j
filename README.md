@@ -17,7 +17,7 @@ If you are using Maven
 </dependency>
 ```
 
-If you are using With Gradle
+If you are using Gradle
 ```groovy
 implementation 'io.github.hoangna1204:fastzip4j:1.0.0'
 ```
